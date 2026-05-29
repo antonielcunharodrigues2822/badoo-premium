@@ -13,7 +13,7 @@ function filtrarMensagem(texto) {
 
     let filtrado = texto;
     if (regexTelefone.test(filtrado) || regexPalavrasChave.test(filtrado) || regexPorExtenso.test(filtrado)) {
-        filtrado = "[NÚMERO/CONTATO BLOQUEADO - Pague R$ 10,00 para desbloquear]";
+        filtrado = "[NÚMERO/CONTATO BLOQUEADO - Pague R$ 05,00 para desbloquear]";
     }
     return filtrado;
 }
