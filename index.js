@@ -23,7 +23,7 @@ app.post('/api/chat', (req, res) => {
     const processada = filtrarMensagem(mensagem);
     res.json({ filtrada: processada });
 });
-const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
     console.log("Servidor ativo na porta" + PORT);
 });
