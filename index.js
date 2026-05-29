@@ -27,3 +27,4 @@ app.post('/api/chat', (req, res) => {
 app.listen(PORT, () => {
     console.log(Servidor ativo na porta ${PORT});
 });
+module.exports = app;
