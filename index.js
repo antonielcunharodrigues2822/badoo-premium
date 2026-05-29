@@ -8,12 +8,12 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CONEXÃO COM O BANCO
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/badoo";
 mongoose.connect(MONGO_URI)
   .then(() => console.log("Banco de dados conectado!"))
-  .catch(err => console.log("Erro no banco:", err));
-
+  .catch(err => {
+      console.log("Erro no banco (Rodando sem DB online):", err.message);
+  });
 // MODELO DE USUÁRIO
 const UserSchema = new mongoose.Schema({
     nome: String,
