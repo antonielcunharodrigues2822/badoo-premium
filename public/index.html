@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badoo Premium Global 18+</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #5f1bb5; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; color: #333; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); max-width: 400px; width: 100%; box-sizing: border-box; margin-bottom: 20px; }
+        button { background: #fe4a49; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .alert { background: #ffebeb; color: #d93838; padding: 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .hidden { display: none; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #5f1bb5; margin: 10px auto; display: block; }
+    </style>
+</head>
+<body>
+    <div id="tela-cadastro" class="card">
+        <h2>Criar Perfil 🌍</h2>
+        <div class="alert">🔞 Apenas para maiores de 18 anos</div>
+        <input type="text" id="nome" placeholder="Seu Nome Completo">
+        <input type="number" id="idade" placeholder="Sua Idade (Mínimo 18)">
+        <select id="genero">
+            <option value="">Seu Gênero</option>
+            <option value="Homem">Homem</option>
+            <option value="Mulher">Mulher</option>
+        </select>
+        <input type="text" id="foto" placeholder="Link de uma foto de perfil">
+        <button id="btn-cadastrar">Entrar no App de Namoro</button>
+    </div>
+
+    <div id="tela-chat" class="card hidden">
+        <img id="user-avatar" class="profile-img" src="" alt="Sua Foto">
+        <h3 id="user-boasvindas" style="margin: 5px 0 15px 0; color:#5f1bb5;"></h3>
+        <textarea id="msg" rows="3" placeholder="Digite uma mensagem..."></textarea>
+        <button id="enviar">Enviar Mensagem</button>
+        <p id="resultado" style="margin-top:15px; font-weight:bold; color:#fe4a49; word-wrap: break-word;"></p>
+    </div>
+
+    <script>
+        let usuarioAtual = null;
+        document.getElementById('btn-cadastrar').addEventListener('click', () => {
+            const nome = document.getElementById('nome').value;
+            const idade = parseInt(document.getElementById('idade').value);
+            const genero = document.getElementById('genero').value;
+            const foto = document.getElementById('foto').value || 'https://unsplash.com';
+
+            if (!nome || !idade || !genero) { alert("Preencha todos os campos."); return; }
+            if (idade < 18) { alert("Proibido para menores de 18 anos."); return; }
+
+            usuarioAtual = { nome, idade, genero, foto };
+            document.getElementById('tela-cadastro').classList.add('hidden');
+            document.getElementById('tela-chat').classList.remove('hidden');
+            document.getElementById('user-avatar').src = usuarioAtual.foto;
+            document.getElementById('user-boasvindas').innerText = Olá, ${usuarioAtual.nome} (${usuarioAtual.genero});
+        });
+
+        document.getElementById('enviar').addEventListener('click', async () => {
+            const msg = document.getElementById('msg').value;
+            if (!msg.trim()) return;
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensagem: msg })
+            });
+            const dados = await res.json();
+            document.getElementById('resultado').innerText = "Resultado: " + dados.filtrada;
+        });
+    </script>
+</body>
+</html>
