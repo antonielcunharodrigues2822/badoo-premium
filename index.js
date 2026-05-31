@@ -64,8 +64,9 @@ app.get('/api/chat', (req, res) => {
     res.json({ mensagem: "Rota de chat ativa!" });
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => console.log("Servidor ativo na porta " + PORT));
-}
+ const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Servidor ativo na porta " + PORT);
+})
 
 module.exports = app;
