@@ -44,7 +44,55 @@ app.get('/', (req, res) => {
     res.send("Servidor do Namoro Online está LIGADO e funcionando com sucesso!");
 });
 
-// 1. ROTA DE CADASTRO COM TRAVA DE IDADE
+// 🛠️ 1.1 ROTA DE LOGIN (ADICIONADA): Busca o usuário cadastrado pelo CPF
+app.post('/api/login', async (req, res) => {
+    try {
+        const { cpf } = req.body;
+        const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
+
+        if (!cpfLimpo || cpfLimpo.length !== 11) {
+            return res.status(400).json({ erro: "Por favor, informe um CPF válido com 11 dígitos." });
+        }
+
+        // Se o MongoDB estiver conectado
+        if (mongoose.connection.readyState === 1) {
+            const usuario = await User.findOne({ cpf: cpfLimpo });
+            
+            if (!usuario) {
+                return res.status(404).json({ erro: "Nenhum perfil encontrado com este CPF. Cadastre-se primeiro!" });
+            }
+
+            if (usuario.statusConta === 'banido') {
+                return res.status(403).json({ erro: "Esta conta foi suspensa por violar as diretrizes da comunidade." });
+            }
+
+            // Remove o CPF do retorno por privacidade e segurança
+            const resposta = usuario.toObject();
+            delete resposta.cpf;
+
+            return res.json({ mensagem: "Login realizado com sucesso!", usuario: resposta });
+        } else {
+            // Se estiver rodando sem banco de dados (Modo de Teste em memória)
+            const usuarioTeste = usuariosTestes.find(u => u.cpf === cpfLimpo);
+            
+            if (!usuarioTeste) {
+                return res.status(404).json({ erro: "Nenhum perfil de teste encontrado com este CPF." });
+            }
+
+            if (usuarioTeste.statusConta === 'banido') {
+                return res.status(403).json({ erro: "Esta conta de teste foi suspensa." });
+            }
+
+            const { cpf: _, ...usuarioSemCpf } = usuarioTeste;
+            return res.json({ mensagem: "Login realizado no Modo de Teste!", usuario: usuarioSemCpf });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ erro: "Erro ao processar o login no servidor." });
+    }
+});
+
+// 2. ROTA DE CADASTRO COM TRAVA DE IDADE
 app.post('/api/cadastro', async (req, res) => {
     try {
         const { nome, dataNascimento, cpf, genero, foto } = req.body;
@@ -100,7 +148,7 @@ app.post('/api/cadastro', async (req, res) => {
     }
 });
 
-// 2. ROTA DE PERFIS
+// 3. ROTA DE PERFIS
 app.get('/api/perfis', async (req, res) => {
     try {
         if (mongoose.connection.readyState === 1) {
@@ -117,7 +165,7 @@ app.get('/api/perfis', async (req, res) => {
     }
 });
 
-// 3. ROTA DE CHAT APERFEIÇOADA
+// 4. ROTA DE CHAT APERFEIÇOADA
 app.post('/api/chat', (req, res) => {
     try {
         let { mensagem } = req.body;
@@ -127,7 +175,7 @@ app.post('/api/chat', (req, res) => {
         }
 
         const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
-        const apenasNumeros = mensagem.replace(/\D/g, '');
+        const apenasNumeros = message = mensagem.replace(/\D/g, '');
 
         if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
             return res.json({ 
