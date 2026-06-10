@@ -6,7 +6,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🛠️ RESOLUÇÃO DEFINITIVA DO CORS: O pacote lida com tudo, sem necessidade de app.options manual
+// Configuração limpa e direta do CORS para evitar bloqueios de rede no Render
 app.use(cors({
     origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI)
         console.log("Aviso: Rodando em MODO DE TESTE (Sem banco de dados local conectado).");
     });
 
-// MODELO DE USUÁRIO ATUALIZADO
+// MODELO DE USUÁRIO
 const UserSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     dataNascimento: { type: Date, required: true },
@@ -39,11 +39,15 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
+// ROTA DE DIAGNÓSTICO: Ajuda a testar se o servidor acordou no Render
+app.get('/', (req, res) => {
+    res.send("Servidor do Namoro Online está LIGADO e funcionando com sucesso!");
+});
+
 // 1. ROTA DE CADASTRO COM TRAVA DE IDADE
 app.post('/api/cadastro', async (req, res) => {
     try {
         const { nome, dataNascimento, cpf, genero, foto } = req.body;
-
         const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
 
         // VALIDAÇÃO 1: BARREIRA DE IDADE
