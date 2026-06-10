@@ -58,6 +58,16 @@
             margin-top: 15px;
         }
         button:hover { background: #e03254; }
+        .link-alternar {
+            display: inline-block;
+            margin-top: 15px;
+            color: #5f1bb5;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .link-alternar:hover { text-decoration: underline; }
         .chat-container { background: #222; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; }
         .perfil-topo { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px; }
     </style>
@@ -87,6 +97,22 @@
         <input type="text" id="foto" placeholder="URL de uma foto de perfil">
         
         <button id="btn-cadastrar">Verificar Dados e Entrar</button>
+        
+        <!-- Link modificado para alternar de tela -->
+        <span class="link-alternar" id="ir-para-login">Já tem uma conta? Faça Login</span>
+    </div>
+
+    <!-- TELA DE LOGIN (ADICIONADA) -->
+    <div id="tela-login" class="card hidden">
+        <h2 style="color: #5f1bb5; margin-top: 0;">Fazer Login</h2>
+        <p style="color: #555; font-size: 14px;">Insira seu CPF verificado para acessar sua conta.</p>
+        
+        <label for="cpf-login">CPF cadastrado:</label>
+        <input type="text" id="cpf-login" placeholder="Digite seus 11 números" maxlength="11">
+        
+        <button id="btn-logar">Entrar na minha Conta</button>
+        
+        <span class="link-alternar" id="ir-para-cadastro">Não tem conta? Cadastre-se</span>
     </div>
 
     <!-- TELA DE CHAT -->
@@ -107,9 +133,57 @@
     </div>
 
     <script>
-        // CORREÇÃO: URL ajustada com o caminho real do seu servidor no Render
-       const API_URL = 'https://namoro-online.onrender.com/';
+        const API_URL = 'https://namoro-online.onrender.com/';
         let usuarioAtual = null;
+
+        // CONTROLE DE ALTERNÂNCIA DE TELAS
+        document.getElementById('ir-para-login').addEventListener('click', () => {
+            document.getElementById('tela-cadastro').classList.add('hidden');
+            document.getElementById('tela-login').classList.remove('hidden');
+        });
+
+        document.getElementById('ir-para-cadastro').addEventListener('click', () => {
+            document.getElementById('tela-login').classList.add('hidden');
+            document.getElementById('tela-cadastro').classList.remove('hidden');
+        });
+
+        // EVENTO DE LOGIN (ADICIONADO)
+        document.getElementById('btn-logar').addEventListener('click', async () => {
+            const cpf = document.getElementById('cpf-login').value.trim();
+
+            if (!cpf || cpf.length !== 11) {
+                alert("Por favor, digite um CPF válido com 11 números.");
+                return;
+            }
+
+            try {
+                const res = await fetch(API_URL + 'api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cpf })
+                });
+
+                const resultado = await res.json();
+
+                if (res.ok) {
+                    alert('Login realizado com sucesso!');
+                    usuarioAtual = resultado.usuario;
+
+                    document.getElementById('tela-login').classList.add('hidden');
+                    document.getElementById('tela-chat').classList.remove('hidden');
+                    
+                    document.getElementById('user-avatar').src = usuarioAtual.foto || 'https://unsplash.com';
+                    document.getElementById('user-boasvindas').innerText = 'Olá, ' + usuarioAtual.nome;
+
+                    puxarPerfis();
+                } else {
+                    alert('Erro no login: ' + (resultado.erro || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error("Erro ao conectar no login:", error);
+                alert("Erro ao conectar com o servidor.");
+            }
+        });
 
         // EVENTO DE CADASTRO
         document.getElementById('btn-cadastrar').addEventListener('click', async () => {
@@ -170,40 +244,3 @@
                 }
             } catch (error) {
                 console.error("Erro ao conectar:", error);
-                alert("Não foi possível conectar ao servidor. Tente atualizar a página.");
-            }
-        });
-
-        // EVENTO DE ENVIAR MENSAGEM NO CHAT
-        document.getElementById('enviar').addEventListener('click', async () => {
-            const msg = document.getElementById('msg').value;
-            if (!msg.trim()) return;
-
-            try {
-                const res = await fetch(API_URL + 'api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mensagem: msg })
-                });
-
-                const dados = await res.json();
-                document.getElementById('resultado').innerText = (dados.filtrada || dados.mensagem);
-                document.getElementById('msg').value = '';
-            } catch (error) {
-                console.error("Erro ao enviar mensagem:", error);
-            }
-        });
-
-        // FUNÇÃO PARA PUXAR OS PERFIS DO MONGO (Finalizada Corretamente)
-        async function puxarPerfis() {
-            try {
-                const res = await fetch(API_URL + 'api/perfis');
-                const perfis = await res.json();
-                console.log("Perfis carregados:", perfis);
-            } catch (error) {
-                console.error("Erro ao buscar perfis:", error);
-            }
-        }
-    </script>
-</body>
-</html>
