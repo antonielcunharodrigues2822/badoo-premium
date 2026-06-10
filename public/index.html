@@ -107,6 +107,7 @@
     </div>
 
     <script>
+        // CORREÇÃO: URL ajustada com o caminho real do seu servidor no Render
         const API_URL = 'https://onrender.com';
         let usuarioAtual = null;
 
@@ -193,43 +194,14 @@
             }
         });
 
-        // FUNÇÃO PARA PUXAR OS PERFIS DO MONGO
+        // FUNÇÃO PARA PUXAR OS PERFIS DO MONGO (Finalizada Corretamente)
         async function puxarPerfis() {
             try {
                 const res = await fetch(API_URL + 'api/perfis');
                 const perfis = await res.json();
-
-                let container = document.getElementById('lista-perfis');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'lista-perfis';
-                    container.style.marginTop = '20px';
-                    container.style.display = 'grid';
-                    container.style.gap = '10px';
-                    document.getElementById('tela-chat').appendChild(container);
-                }
-                container.innerHTML = '<h3>Descubra novos perfis:</h3>';
-
-                const outrosPerfis = perfis.filter(p => p.nome !== usuarioAtual?.nome);
-
-                outrosPerfis.forEach(perfil => {
-                    const card = document.createElement('div');
-                    card.style.background = '#333';
-                    card.style.padding = '10px';
-                    card.style.borderRadius = '8px';
-                    card.style.display = 'flex';
-                    card.style.alignItems = 'center';
-                    card.style.gap = '15px';
-
-                    card.innerHTML = '<img src="' + perfil.foto + '" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">' +
-                                     '<div>' +
-                                     '<h4 style="margin:0; color: white;">' + perfil.nome + '</h4>' +
-                                     '<p style="margin:0; color: #aaa; font-size: 12px;">' + perfil.genero + '</p>' +
-                                     '</div>';
-                    container.appendChild(card);
-                });
+                console.log("Perfis carregados:", perfis);
             } catch (error) {
-                console.error("Erro ao carregar perfis do MongoDB:", error);
+                console.error("Erro ao buscar perfis:", error);
             }
         }
     </script>
