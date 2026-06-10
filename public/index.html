@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- NOME ALTERADO PARA EVITAR PROCESSOS -->
     <title>Namoro Online | Encontre sua metade</title>
     <style>
         body {
@@ -67,13 +66,11 @@
 
     <!-- TELA DE CADASTRO -->
     <div id="tela-cadastro" class="card">
-        <!-- IDENTIDADE VISUAL ATUALIZADA -->
         <h2 style="color: #5f1bb5; margin-top: 0;">Namoro Online 🟢</h2>
         <p style="color: #cc0000; font-size: 14px; font-weight: bold;">Verificação obrigatória | Apenas para maiores de 18 anos</p>
         
         <input type="text" id="nome" placeholder="Nome Completo">
         
-        <!-- TRAVA DE SEGURANÇA: INPUTS ADICIONADOS -->
         <label for="dataNascimento">Data de Nascimento:</label>
         <input type="date" id="dataNascimento">
         
@@ -109,34 +106,28 @@
         </div>
     </div>
 
-    <!-- SCRIPT ADAPTADO COM OS NOVOS CAMPOS -->
     <script>
-        // Mantenha Localhost para testes locais, depois mude para o link do Render
-    const API_URL = 'https://namoro-online.onrender.com/';
-
+        const API_URL = 'https://onrender.com';
         let usuarioAtual = null;
 
         // EVENTO DE CADASTRO
         document.getElementById('btn-cadastrar').addEventListener('click', async () => {
-            const nome = document.getElementById('nome').value;
+            const nome = document.getElementById('nome').value.trim();
             const dataNascimento = document.getElementById('dataNascimento').value;
             const cpf = document.getElementById('cpf').value.trim();
             const genero = document.getElementById('genero').value;
-            const foto = document.getElementById('foto').value || 'https://unsplash.com';
+            const foto = document.getElementById('foto').value.trim() || 'https://unsplash.com';
 
-            // Validação visual de preenchimento
             if (!nome || !dataNascimento || !cpf || !genero) {
                 alert("Por favor, preencha todos os campos obrigatórios.");
                 return;
             }
 
-            // Validação básica do tamanho do CPF
             if (cpf.length !== 11) {
                 alert("O CPF informado deve conter exatamente 11 dígitos.");
                 return;
             }
 
-            // Cálculo local de idade antes do envio (Primeira barreira)
             const hoje = new Date();
             const nascimento = new Date(dataNascimento);
             let idadeCalculada = hoje.getFullYear() - nascimento.getFullYear();
@@ -150,14 +141,7 @@
                 return;
             }
 
-            // Empacota todos os novos dados solicitados
-            const dadosFormulario = { 
-                nome: nome, 
-                dataNascimento: dataNascimento, 
-                cpf: cpf, 
-                genero: genero, 
-                foto: foto 
-            };
+            const dadosFormulario = { nome, dataNascimento, cpf, genero, foto };
 
             try {
                 const res = await fetch(API_URL + 'api/cadastro', {
@@ -181,12 +165,11 @@
 
                     puxarPerfis();
                 } else {
-                    // Aqui mostrará o erro caso o CPF seja banido ou ocorra outro problema no back-end
                     alert('Erro no cadastro: ' + (resultado.erro || 'Erro desconhecido'));
                 }
             } catch (error) {
                 console.error("Erro ao conectar:", error);
-                alert("Não foi possível conectar ao servidor. Garanta que ele esteja rodando localmente.");
+                alert("Não foi possível conectar ao servidor. Tente atualizar a página.");
             }
         });
 
@@ -203,7 +186,7 @@
                 });
 
                 const dados = await res.json();
-                document.getElementById('resultado').innerText = "Resultado: " + (dados.filtrada || dados.mensagem);
+                document.getElementById('resultado').innerText = (dados.filtrada || dados.mensagem);
                 document.getElementById('msg').value = '';
             } catch (error) {
                 console.error("Erro ao enviar mensagem:", error);
@@ -241,3 +224,14 @@
                     card.innerHTML = '<img src="' + perfil.foto + '" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">' +
                                      '<div>' +
                                      '<h4 style="margin:0; color: white;">' + perfil.nome + '</h4>' +
+                                     '<p style="margin:0; color: #aaa; font-size: 12px;">' + perfil.genero + '</p>' +
+                                     '</div>';
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar perfis do MongoDB:", error);
+            }
+        }
+    </script>
+</body>
+</html>
