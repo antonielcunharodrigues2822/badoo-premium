@@ -6,7 +6,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🛠️ CORREÇÃO SEVERA DO CORS: Libera acessos externos e limpa cabeçalhos para o Render
+// 🛠️ CORREÇÃO DO CORS: Libera acessos externos e limpa cabeçalhos para o Render
 app.use(cors({
     origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -14,8 +14,8 @@ app.use(cors({
     credentials: true
 }));
 
-// Rota auxiliar para garantir que requisições de checagem do navegador (OPTIONS) nunca falhem
-app.options('*', cors());
+// Rota auxiliar corrigida para compatibilidade com o Express moderno
+app.options('/*', cors());
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -125,7 +125,8 @@ app.post('/api/chat', (req, res) => {
             return res.status(400).json({ erro: "Mensagem vazia." });
         }
 
-        const mensagemNormalizada = message = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
+        // CORREÇÃO: Variável limpa e sem duplicidade de atribuição externa
+        const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
 
         const apenasNumeros = mensagem.replace(/\D/g, '');
 
@@ -154,7 +155,7 @@ app.post('/api/chat', (req, res) => {
             });
         }
 
-        res.json({ mensagem: mensagem, filtrada: mensagem });
+        res.json({ mensagem: message = mensagem, filtrada: mensagem });
 
     } catch (error) {
         res.status(500).json({ erro: "Erro ao processar mensagem no chat." });
