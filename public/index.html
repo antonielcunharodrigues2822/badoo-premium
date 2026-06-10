@@ -98,11 +98,10 @@
         
         <button id="btn-cadastrar">Verificar Dados e Entrar</button>
         
-        <!-- Link modificado para alternar de tela -->
         <span class="link-alternar" id="ir-para-login">Já tem uma conta? Faça Login</span>
     </div>
 
-    <!-- TELA DE LOGIN (ADICIONADA) -->
+    <!-- TELA DE LOGIN -->
     <div id="tela-login" class="card hidden">
         <h2 style="color: #5f1bb5; margin-top: 0;">Fazer Login</h2>
         <p style="color: #555; font-size: 14px;">Insira seu CPF verificado para acessar sua conta.</p>
@@ -147,7 +146,7 @@
             document.getElementById('tela-cadastro').classList.remove('hidden');
         });
 
-        // EVENTO DE LOGIN (ADICIONADO)
+        // EVENTO DE LOGIN
         document.getElementById('btn-logar').addEventListener('click', async () => {
             const cpf = document.getElementById('cpf-login').value.trim();
 
@@ -185,7 +184,7 @@
             }
         });
 
-        // EVENTO DE CADASTRO
+        // EVENTO DE CADASTRO CORRIGIDO (Adicionado o fechamento correto)
         document.getElementById('btn-cadastrar').addEventListener('click', async () => {
             const nome = document.getElementById('nome').value.trim();
             const dataNascimento = document.getElementById('dataNascimento').value;
@@ -229,7 +228,6 @@
 
                 if (res.ok) {
                     alert('Perfil verificado e cadastrado com sucesso!');
-                    
                     usuarioAtual = resultado.usuario || dadosFormulario;
 
                     document.getElementById('tela-cadastro').classList.add('hidden');
@@ -244,3 +242,8 @@
                 }
             } catch (error) {
                 console.error("Erro ao conectar:", error);
+                alert("Não foi possível conectar ao servidor. Tente atualizar a página.");
+            }
+        });
+
+        // EVENTO DE ENVIAR MENSAGEM NO CHAT
