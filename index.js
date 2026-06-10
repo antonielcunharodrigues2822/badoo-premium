@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
     res.send("Servidor do Namoro Online está LIGADO e funcionando com sucesso!");
 });
 
-// 🛠️ 1.1 ROTA DE LOGIN (ADICIONADA): Busca o usuário cadastrado pelo CPF
+// 1. ROTA DE LOGIN: Busca o usuário cadastrado pelo CPF
 app.post('/api/login', async (req, res) => {
     try {
         const { cpf } = req.body;
@@ -54,7 +54,6 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ erro: "Por favor, informe um CPF válido com 11 dígitos." });
         }
 
-        // Se o MongoDB estiver conectado
         if (mongoose.connection.readyState === 1) {
             const usuario = await User.findOne({ cpf: cpfLimpo });
             
@@ -66,13 +65,11 @@ app.post('/api/login', async (req, res) => {
                 return res.status(403).json({ erro: "Esta conta foi suspensa por violar as diretrizes da comunidade." });
             }
 
-            // Remove o CPF do retorno por privacidade e segurança
             const resposta = usuario.toObject();
             delete resposta.cpf;
 
             return res.json({ mensagem: "Login realizado com sucesso!", usuario: resposta });
         } else {
-            // Se estiver rodando sem banco de dados (Modo de Teste em memória)
             const usuarioTeste = usuariosTestes.find(u => u.cpf === cpfLimpo);
             
             if (!usuarioTeste) {
@@ -113,7 +110,7 @@ app.post('/api/cadastro', async (req, res) => {
 
         // VALIDAÇÃO 2: TRAVA DE SEGURANÇA (SIMULADA POR CPF)
         if (cpfLimpo === "11122233344" || cpfLimpo === "00000000000") {
-            return res.status(403).json({ erro: "Sua conta não cumpre com os requisitos de segurança e termos de uso do app." });
+            return res.status(403).json({ erro: "Sua conta não cumpre com os requisitos de segurança e termos of uso do app." });
         }
 
         const dadosNovoUsuario = { nome, dataNascimento, cpf: cpfLimpo, genero, foto, statusConta: 'aprovado' };
@@ -165,7 +162,7 @@ app.get('/api/perfis', async (req, res) => {
     }
 });
 
-// 4. ROTA DE CHAT APERFEIÇOADA
+// 4. ROTA DE CHAT APERFEIÇOADA (CORRIGIDA)
 app.post('/api/chat', (req, res) => {
     try {
         let { mensagem } = req.body;
@@ -175,7 +172,9 @@ app.post('/api/chat', (req, res) => {
         }
 
         const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
-        const apenasNumeros = message = mensagem.replace(/\D/g, '');
+        
+        // CORREÇÃO: Removida a atribuição duplicada 'message =' que causava o erro de sintaxe
+        const apenasNumeros = mensagem.replace(/\D/g, '');
 
         if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
             return res.json({ 
