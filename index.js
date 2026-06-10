@@ -6,7 +6,17 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors()); 
+// 🛠️ CORREÇÃO SEVERA DO CORS: Libera acessos externos e limpa cabeçalhos para o Render
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true
+}));
+
+// Rota auxiliar para garantir que requisições de checagem do navegador (OPTIONS) nunca falhem
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -24,7 +34,7 @@ mongoose.connect(MONGO_URI)
 const UserSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     dataNascimento: { type: Date, required: true },
-    cpf: { type: String, required: true }, // Em produção, utilize hash/criptografia
+    cpf: { type: String, required: true }, 
     genero: { type: String, required: true },
     foto: { type: String },
     statusConta: { type: String, enum: ['aprovado', 'banido'], default: 'aprovado' }
@@ -37,7 +47,6 @@ app.post('/api/cadastro', async (req, res) => {
     try {
         const { nome, dataNascimento, cpf, genero, foto } = req.body;
 
-        // Limpa caracteres especiais do CPF para validação padrão
         const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
 
         // VALIDAÇÃO 1: BARREIRA DE IDADE
@@ -69,7 +78,6 @@ app.post('/api/cadastro', async (req, res) => {
             const novoUsuario = new User(dadosNovoUsuario);
             await novoUsuario.save();
             
-            // Remove o CPF da resposta por segurança
             const resposta = novoUsuario.toObject();
             delete resposta.cpf;
 
@@ -82,7 +90,6 @@ app.post('/api/cadastro', async (req, res) => {
 
             usuariosTestes.push(dadosNovoUsuario);
             
-            // Remove o CPF do retorno de teste
             const { cpf: _, ...usuarioSemCpf } = dadosNovoUsuario;
             res.status(201).json({ mensagem: "Cadastrado no Modo de Teste!", usuario: usuarioSemCpf });
         }
@@ -92,14 +99,13 @@ app.post('/api/cadastro', async (req, res) => {
     }
 });
 
-// 2. ROTA DE PERFIS (Protegendo dados sensíveis no Fallback)
+// 2. ROTA DE PERFIS
 app.get('/api/perfis', async (req, res) => {
     try {
         if (mongoose.connection.readyState === 1) {
             const perfisDoBanco = await User.find({ statusConta: 'aprovado' }).select('-cpf');
             res.json(perfisDoBanco);
         } else {
-            // CORREÇÃO: Mapeia o array de testes para não vazar os CPFs dos usuários
             const perfisAprovadosTeste = usuariosTestes
                 .filter(u => u.statusConta === 'aprovado')
                 .map(({ cpf, ...resto }) => resto);
@@ -119,12 +125,8 @@ app.post('/api/chat', (req, res) => {
             return res.status(400).json({ erro: "Mensagem vazia." });
         }
 
-        // Normalização da mensagem para checagem (remove espaços extras e caracteres repetidos)
-        const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
+        const mensagemNormalizada = message = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
 
-        // 1. FILTRO DE NÚMEROS (Regex ajustada para padrões de celulares BR: 9 números ou fixo: 8 números)
-        // Captura sequências numéricas longas mesmo com espaços/hifens inseridos no meio
-        const regexTelefone = /(?:\d[\s\-]*){8,11}/g;
         const apenasNumeros = mensagem.replace(/\D/g, '');
 
         if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
@@ -134,7 +136,6 @@ app.post('/api/chat', (req, res) => {
             });
         }
 
-        // 2. FILTRO POR EXTENSO (Melhorado usando a string sem espaços/pontuação)
         const numerosExtenso = [
             'zero', 'um', 'dois', 'tres', 'três', 'quatro', 'cinco', 
             'seis', 'sete', 'oito', 'nove', 'dez', 'meia'
