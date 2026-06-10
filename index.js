@@ -124,7 +124,7 @@ app.post('/api/chat', (req, res) => {
 
         // 1. FILTRO DE NÚMEROS (Regex ajustada para padrões de celulares BR: 9 números ou fixo: 8 números)
         // Captura sequências numéricas longas mesmo com espaços/hifens inseridos no meio
-        const regexTelefone BR = /(?:\d[\s\-]*){8,11}/g;
+        const regexTelefone = /(?:\d[\s\-]*){8,11}/g;
         const apenasNumeros = mensagem.replace(/\D/g, '');
 
         if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
