@@ -132,7 +132,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://namoro-online.onrender.com/';
+        const API_URL = 'https://onrender.com';
         let usuarioAtual = null;
 
         // CONTROLE DE ALTERNÂNCIA DE TELAS
@@ -184,7 +184,7 @@
             }
         });
 
-        // EVENTO DE CADASTRO CORRIGIDO (Adicionado o fechamento correto)
+        // EVENTO DE CADASTRO
         document.getElementById('btn-cadastrar').addEventListener('click', async () => {
             const nome = document.getElementById('nome').value.trim();
             const dataNascimento = document.getElementById('dataNascimento').value;
@@ -246,4 +246,4 @@
             }
         });
 
-        // EVENTO DE ENVIAR MENSAGEM NO CHAT
+        // EVENTO DE ENVIAR MENSAGEM NO CHAT (CORRIGIDO)
