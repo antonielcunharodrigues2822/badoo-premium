@@ -39,7 +39,7 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-// 🛠️ ROTA FORÇADA: Garante a entrega do index.html correto da pasta public sem erros de cache do Linux
+// ROTA FORÇADA: Garante a entrega do index.html correto da pasta public
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -188,7 +188,8 @@ app.post('/api/chat', (req, res) => {
         
         let contadorNumeros = 0;
         numerosExtenso.forEach(num => {
-            const ocorrencias = messageNormalizada = mensagemNormalizada.split(num).length - 1;
+            // 🛠️ CORREÇÃO EXATA AQUI: Removida a atribuição duplicada fantasma
+            const ocorrencias = mensagemNormalizada.split(num).length - 1;
             contadorNumeros += ocorrencias;
         });
 
