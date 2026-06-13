@@ -77,7 +77,7 @@
     <!-- TELA DE CADASTRO -->
     <div id="tela-cadastro" class="card">
         <h2 style="color: #5f1bb5; margin-top: 0;">Namoro Online 🟢</h2>
-        <p style="color: #cc0000; font-size: 14px; font-weight: bold;">Verificação obrigatória | Exclusivo para maiores de 18 anos.</p>
+        <p style="color: #cc0000; font-size: 14px; font-weight: bold;">Verificação obrigatória | Exclusivo para maiores de 18 anos</p>
         
         <input type="text" id="nome" placeholder="Nome Completo">
         
@@ -135,56 +135,49 @@
         const API_URL = 'https://onrender.com';
         let usuarioAtual = null;
 
-        // CONTROLE DE ALTERNÂNCIA DE TELAS
-        document.getElementById('ir-para-login').addEventListener('click', () => {
+        // MUDANÇA DE TELA DIRETA (Independente do Servidor)
+        document.getElementById('ir-para-login').addEventListener('click', (e) => {
+            e.preventDefault();
             document.getElementById('tela-cadastro').classList.add('hidden');
             document.getElementById('tela-login').classList.remove('hidden');
         });
 
-        document.getElementById('ir-para-cadastro').addEventListener('click', () => {
+        document.getElementById('ir-para-cadastro').addEventListener('click', (e) => {
+            e.preventDefault();
             document.getElementById('tela-login').classList.add('hidden');
             document.getElementById('tela-cadastro').classList.remove('hidden');
         });
 
-        // EVENTO DE LOGIN
+        // EVENTO DE LOGIN (CORRIGIDO SEM A FUNÇÃO FANTASMA)
         document.getElementById('btn-logar').addEventListener('click', async () => {
             const cpf = document.getElementById('cpf-login').value.trim();
-
             if (!cpf || cpf.length !== 11) {
                 alert("Por favor, digite um CPF válido com 11 números.");
                 return;
             }
-
             try {
                 const res = await fetch(API_URL + 'api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cpf })
                 });
-
                 const resultado = await res.json();
-
                 if (res.ok) {
                     alert('Login realizado com sucesso!');
                     usuarioAtual = resultado.usuario;
-
                     document.getElementById('tela-login').classList.add('hidden');
                     document.getElementById('tela-chat').classList.remove('hidden');
-                    
                     document.getElementById('user-avatar').src = usuarioAtual.foto || 'https://unsplash.com';
                     document.getElementById('user-boasvindas').innerText = 'Olá, ' + usuarioAtual.nome;
-
-                    puxarPerfis();
                 } else {
                     alert('Erro no login: ' + (resultado.erro || 'Erro desconhecido'));
                 }
             } catch (error) {
-                console.error("Erro ao conectar no login:", error);
                 alert("Erro ao conectar com o servidor.");
             }
         });
 
-        // EVENTO DE CADASTRO
+        // EVENTO DE CADASTRO (CORRIGIDO SEM A FUNÇÃO FANTASMA)
         document.getElementById('btn-cadastrar').addEventListener('click', async () => {
             const nome = document.getElementById('nome').value.trim();
             const dataNascimento = document.getElementById('dataNascimento').value;
@@ -196,7 +189,6 @@
                 alert("Por favor, preencha todos os campos obrigatórios.");
                 return;
             }
-
             if (cpf.length !== 11) {
                 alert("O CPF informado deve conter exatamente 11 dígitos.");
                 return;
@@ -209,41 +201,35 @@
             if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
                 idadeCalculada--;
             }
-
             if (idadeCalculada < 18) {
                 alert("Cadastro negado. O sistema é exclusivo para maiores de 18 anos.");
                 return;
             }
 
-            const dadosFormulario = { nome, dataNascimento, cpf, genero, foto };
-
             try {
                 const res = await fetch(API_URL + 'api/cadastro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadosFormulario)
+                    body: JSON.stringify({ nome, dataNascimento, cpf, genero, foto })
                 });
-
                 const resultado = await res.json();
-
                 if (res.ok) {
                     alert('Perfil verificado e cadastrado com sucesso!');
-                    usuarioAtual = resultado.usuario || dadosFormulario;
-
+                    usuarioAtual = resultado.usuario;
                     document.getElementById('tela-cadastro').classList.add('hidden');
                     document.getElementById('tela-chat').classList.remove('hidden');
-                    
                     document.getElementById('user-avatar').src = usuarioAtual.foto;
                     document.getElementById('user-boasvindas').innerText = 'Olá, ' + usuarioAtual.nome;
-
-                    puxarPerfis();
                 } else {
                     alert('Erro no cadastro: ' + (resultado.erro || 'Erro desconhecido'));
                 }
             } catch (error) {
-                console.error("Erro ao conectar:", error);
-                alert("Não foi possível conectar ao servidor. Tente atualizar a página.");
+                alert("Não foi possível conectar ao servidor.");
             }
         });
 
         // EVENTO DE ENVIAR MENSAGEM NO CHAT
+        document.getElementById('enviar').addEventListener('click', async () => {
+            const msg = document.getElementById('msg').value;
+            if (!msg.trim()) return;
+            try {
