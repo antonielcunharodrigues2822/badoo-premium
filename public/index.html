@@ -203,10 +203,10 @@
             }
 
             const hoje = new Date();
-            const nascimento = new Date(dataNascimento);
-            let idadeCalculada = hoje.getFullYear() - nascimento.getFullYear();
-            const mes = hoje.getMonth() - nascimento.getMonth();
-            if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+            const nacimiento = new Date(dataNascimento);
+            let idadeCalculada = hoje.getFullYear() - nacimiento.getFullYear();
+            const mes = hoje.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoje.getDate() < nacimiento.getDate())) {
                 idadeCalculada--;
             }
 
@@ -246,4 +246,4 @@
             }
         });
 
-        // EVENTO DE ENVIAR MENSAGEM NO CHAT (CORRIGIDO)
+        // EVENTO DE ENVIAR MENSAGEM NO CHAT
