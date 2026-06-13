@@ -39,9 +39,9 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-// ROTA DE DIAGNÓSTICO: Ajuda a testar se o servidor acordou no Render
+// 🛠️ ROTA FORÇADA: Garante a entrega do index.html correto da pasta public sem erros de cache do Linux
 app.get('/', (req, res) => {
-    res.send("Servidor do Namoro Online está LIGADO e funcionando com sucesso!");
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 1. ROTA DE LOGIN: Busca o usuário cadastrado pelo CPF
@@ -110,7 +110,7 @@ app.post('/api/cadastro', async (req, res) => {
 
         // VALIDAÇÃO 2: TRAVA DE SEGURANÇA (SIMULADA POR CPF)
         if (cpfLimpo === "11122233344" || cpfLimpo === "00000000000") {
-            return res.status(403).json({ erro: "Sua conta não cumpre com os requisitos de segurança e termos of uso do app." });
+            return res.status(403).json({ erro: "Sua conta não cumpre com os requisitos de segurança e termos de uso do app." });
         }
 
         const dadosNovoUsuario = { nome, dataNascimento, cpf: cpfLimpo, genero, foto, statusConta: 'aprovado' };
@@ -162,7 +162,7 @@ app.get('/api/perfis', async (req, res) => {
     }
 });
 
-// 4. ROTA DE CHAT APERFEIÇOADA (CORRIGIDA)
+// 4. ROTA DE CHAT APERFEIÇOADA
 app.post('/api/chat', (req, res) => {
     try {
         let { mensagem } = req.body;
@@ -172,8 +172,6 @@ app.post('/api/chat', (req, res) => {
         }
 
         const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
-        
-        // CORREÇÃO: Removida a atribuição duplicada 'message =' que causava o erro de sintaxe
         const apenasNumeros = mensagem.replace(/\D/g, '');
 
         if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
@@ -190,7 +188,7 @@ app.post('/api/chat', (req, res) => {
         
         let contadorNumeros = 0;
         numerosExtenso.forEach(num => {
-            const ocorrencias = mensagemNormalizada.split(num).length - 1;
+            const ocorrencias = messageNormalizada = mensagemNormalizada.split(num).length - 1;
             contadorNumeros += ocorrencias;
         });
 
