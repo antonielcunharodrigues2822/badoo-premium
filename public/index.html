@@ -1,211 +1,237 @@
-const express = require('express');
-const path = require('path');
-const mongoose = require('mongoose');
-const cors = require('cors'); 
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Configuração limpa e direta do CORS para evitar bloqueios de rede no Render
-app.use(cors({
-    origin: '*', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true
-}));
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Simulação de banco de dados em memória para testes offline
-let usuariosTestes = [];
-
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/namoroonline";
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("Banco de dados MongoDB conectado com sucesso!"))
-    .catch(err => {
-        console.log("Aviso: Rodando em MODO DE TESTE (Sem banco de dados local conectado).");
-    });
-
-// MODELO DE USUÁRIO
-const UserSchema = new mongoose.Schema({
-    nome: { type: String, required: true },
-    dataNascimento: { type: Date, required: true },
-    cpf: { type: String, required: true }, 
-    genero: { type: String, required: true },
-    foto: { type: String },
-    statusConta: { type: String, enum: ['aprovado', 'banido'], default: 'aprovado' }
-});
-
-const User = mongoose.model('User', UserSchema);
-
-// 🛠️ ROTA FORÇADA: Garante a entrega do index.html correto da pasta public sem erros de cache do Linux
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// 1. ROTA DE LOGIN: Busca o usuário cadastrado pelo CPF
-app.post('/api/login', async (req, res) => {
-    try {
-        const { cpf } = req.body;
-        const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
-
-        if (!cpfLimpo || cpfLimpo.length !== 11) {
-            return res.status(400).json({ erro: "Por favor, informe um CPF válido com 11 dígitos." });
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namoro Online | Encontre sua metade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #5f1bb5;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
-
-        if (mongoose.connection.readyState === 1) {
-            const usuario = await User.findOne({ cpf: cpfLimpo });
-            
-            if (!usuario) {
-                return res.status(404).json({ erro: "Nenhum perfil encontrado com este CPF. Cadastre-se primeiro!" });
-            }
-
-            if (usuario.statusConta === 'banido') {
-                return res.status(403).json({ erro: "Esta conta foi suspensa por violar as diretrizes da comunidade." });
-            }
-
-            const resposta = usuario.toObject();
-            delete resposta.cpf;
-
-            return res.json({ mensagem: "Login realizado com sucesso!", usuario: resposta });
-        } else {
-            const usuarioTeste = usuariosTestes.find(u => u.cpf === cpfLimpo);
-            
-            if (!usuarioTeste) {
-                return res.status(404).json({ erro: "Nenhum perfil de teste encontrado com este CPF." });
-            }
-
-            if (usuarioTeste.statusConta === 'banido') {
-                return res.status(403).json({ erro: "Esta conta de teste foi suspensa." });
-            }
-
-            const { cpf: _, ...usuarioSemCpf } = usuarioTeste;
-            return res.json({ mensagem: "Login realizado no Modo de Teste!", usuario: usuarioSemCpf });
+        .hidden { display: none !important; }
+        .card {
+            background: white;
+            color: black;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 20px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ erro: "Erro ao processar o login no servidor." });
-    }
-});
-
-// 2. ROTA DE CADASTRO COM TRAVA DE IDADE
-app.post('/api/cadastro', async (req, res) => {
-    try {
-        const { nome, dataNascimento, cpf, genero, foto } = req.body;
-        const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
-
-        // VALIDAÇÃO 1: BARREIRA DE IDADE
-        const hoje = new Date();
-        const nascimento = new Date(dataNascimento);
-        let idadeCalculada = hoje.getFullYear() - nascimento.getFullYear();
-        const mes = hoje.getMonth() - nascimento.getMonth();
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-            idadeCalculada--;
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
-
-        if (idadeCalculada < 18) {
-            return res.status(403).json({ erro: "Cadastro recusado. Apenas maiores de 18 anos são permitidos." });
+        label {
+            display: block;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+            font-weight: bold;
         }
-
-        // VALIDAÇÃO 2: TRAVA DE SEGURANÇA (SIMULADA POR CPF)
-        if (cpfLimpo === "11122233344" || cpfLimpo === "00000000000") {
-            return res.status(403).json({ erro: "Sua conta não cumpre com os requisitos de segurança e termos de uso do app." });
+        button {
+            width: 100%;
+            background: #ff4365;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
         }
-
-        const dadosNovoUsuario = { nome, dataNascimento, cpf: cpfLimpo, genero, foto, statusConta: 'aprovado' };
-
-        if (mongoose.connection.readyState === 1) {
-            const usuarioExistente = await User.findOne({ cpf: cpfLimpo });
-            if (usuarioExistente) {
-                return res.status(400).json({ erro: "Este CPF já possui uma conta cadastrada." });
-            }
-
-            const novoUsuario = new User(dadosNovoUsuario);
-            await novoUsuario.save();
-            
-            const resposta = novoUsuario.toObject();
-            delete resposta.cpf;
-
-            res.status(201).json({ mensagem: "Cadastrado com sucesso!", usuario: resposta });
-        } else {
-            const cpfExisteTeste = usuariosTestes.some(u => u.cpf === cpfLimpo);
-            if (cpfExisteTeste) {
-                return res.status(400).json({ erro: "Este CPF já possui uma conta cadastrada." });
-            }
-
-            usuariosTestes.push(dadosNovoUsuario);
-            
-            const { cpf: _, ...usuarioSemCpf } = dadosNovoUsuario;
-            res.status(201).json({ mensagem: "Cadastrado no Modo de Teste!", usuario: usuarioSemCpf });
+        button:hover { background: #e03254; }
+        .link-alternar {
+            display: inline-block;
+            margin-top: 15px;
+            color: #5f1bb5;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
         }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ erro: "Erro ao processar o cadastro no servidor." });
-    }
-});
+        .link-alternar:hover { text-decoration: underline; }
+        .chat-container { background: #222; padding: 20px; border-radius: 15px; width: 100%; max-width: 500px; }
+        .perfil-topo { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
 
-// 3. ROTA DE PERFIS
-app.get('/api/perfis', async (req, res) => {
-    try {
-        if (mongoose.connection.readyState === 1) {
-            const perfisDoBanco = await User.find({ statusConta: 'aprovado' }).select('-cpf');
-            res.json(perfisDoBanco);
-        } else {
-            const perfisAprovadosTeste = usuariosTestes
-                .filter(u => u.statusConta === 'aprovado')
-                .map(({ cpf, ...resto }) => resto);
-            res.json(perfisAprovadosTeste);
-        }
-    } catch (error) {
-        res.status(500).json({ erro: "Erro ao buscar a lista de perfis." });
-    }
-});
-
-// 4. ROTA DE CHAT APERFEIÇOADA
-app.post('/api/chat', (req, res) => {
-    try {
-        let { mensagem } = req.body;
-
-        if (!mensagem) {
-            return res.status(400).json({ erro: "Mensagem vazia." });
-        }
-
-        const mensagemNormalizada = mensagem.toLowerCase().replace(/[\s\-\.\,\_\*\/]/g, '');
-        const apenasNumeros = mensagem.replace(/\D/g, '');
-
-        if (apenasNumeros.length >= 8 && apenasNumeros.length <= 12) {
-            return res.json({ 
-                mensagem: "Mensagem bloqueada por segurança.", 
-                filtrada: "🚫 [Sistema]: Compartilhar números de telefone antes de desbloquear o Premium é proibido pelas diretrizes da comunidade." 
-            });
-        }
-
-        const numerosExtenso = [
-            'zero', 'um', 'dois', 'tres', 'três', 'quatro', 'cinco', 
-            'seis', 'sete', 'oito', 'nove', 'dez', 'meia'
-        ];
+    <!-- TELA DE CADASTRO -->
+    <div id="tela-cadastro" class="card">
+        <h2 style="color: #5f1bb5; margin-top: 0;">Namoro Online 🟢</h2>
+        <p style="color: #cc0000; font-size: 14px; font-weight: bold;">Verificação obrigatória | Exclusivo para maiores de 18 anos</p>
         
-        let contadorNumeros = 0;
-        numerosExtenso.forEach(num => {
-            const ocorrencias = messageNormalizada = mensagemNormalizada.split(num).length - 1;
-            contadorNumeros += ocorrencias;
+        <input type="text" id="nome" placeholder="Nome Completo">
+        
+        <label for="dataNascimento">Data de Nascimento:</label>
+        <input type="date" id="dataNascimento">
+        
+        <label for="cpf">CPF (Somente números):</label>
+        <input type="text" id="cpf" placeholder="Ex: 12345678909" maxlength="11">
+        
+        <select id="genero">
+            <option value="">Selecione seu gênero</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Outro</option>
+        </select>
+        
+        <input type="text" id="foto" placeholder="URL de uma foto de perfil">
+        
+        <button id="btn-cadastrar">Verificar Dados e Entrar</button>
+        
+        <span class="link-alternar" id="ir-para-login">Já tem uma conta? Faça Login</span>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login" class="card hidden">
+        <h2 style="color: #5f1bb5; margin-top: 0;">Fazer Login</h2>
+        <p style="color: #555; font-size: 14px;">Insira seu CPF verificado para acessar sua conta.</p>
+        
+        <label for="cpf-login">CPF cadastrado:</label>
+        <input type="text" id="cpf-login" placeholder="Digite seus 11 números" maxlength="11">
+        
+        <button id="btn-logar">Entrar na minha Conta</button>
+        
+        <span class="link-alternar" id="ir-para-cadastro">Não tem conta? Cadastre-se</span>
+    </div>
+
+    <!-- TELA DE CHAT -->
+    <div id="tela-chat" class="chat-container hidden">
+        <div class="perfil-topo">
+            <img id="user-avatar" src="" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            <h3 id="user-boasvindas" style="margin: 0;">Olá</h3>
+        </div>
+        
+        <div style="background: #333; padding: 15px; border-radius: 10px; min-height: 100px; margin-bottom: 15px;">
+            <p id="resultado" style="margin: 0; color: #00ffcc;">Mensagens aparecerão aqui...</p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="msg" placeholder="Digite uma mensagem..." style="margin: 0;">
+            <button id="enviar" style="margin: 0; width: auto; padding: 0 20px;">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://onrender.com';
+        let usuarioAtual = null;
+
+        // MUDANÇA DE TELA DIRETA (Nativa do Navegador)
+        document.getElementById('ir-para-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('tela-cadastro').classList.add('hidden');
+            document.getElementById('tela-login').classList.remove('hidden');
         });
 
-        if (contadorNumeros >= 4) {
-            return res.json({ 
-                mensagem: "Mensagem bloqueada por segurança.", 
-                filtrada: "🚫 [Sistema]: Tentativa de burlar o sistema enviando telefone por extenso detectada." 
-            });
-        }
+        document.getElementById('ir-para-cadastro').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('tela-login').classList.add('hidden');
+            document.getElementById('tela-cadastro').classList.remove('hidden');
+        });
 
-        res.json({ mensagem: mensagem, filtrada: mensagem });
+        // EVENTO DE LOGIN
+        document.getElementById('btn-logar').addEventListener('click', async () => {
+            const cpf = document.getElementById('cpf-login').value.trim();
+            if (!cpf || cpf.length !== 11) {
+                alert("Por favor, digite um CPF válido com 11 números.");
+                return;
+            }
+            try {
+                const res = await fetch(API_URL + 'api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cpf })
+                });
+                const resultado = await res.json();
+                if (res.ok) {
+                    alert('Login realizado com sucesso!');
+                    usuarioAtual = resultado.usuario;
+                    document.getElementById('tela-login').classList.add('hidden');
+                    document.getElementById('tela-chat').classList.remove('hidden');
+                    document.getElementById('user-avatar').src = usuarioAtual.foto || 'https://unsplash.com';
+                    document.getElementById('user-boasvindas').innerText = 'Olá, ' + usuarioAtual.nome;
+                } else {
+                    alert('Erro no login: ' + (resultado.erro || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                alert("Erro ao conectar com o servidor.");
+            }
+        });
 
-    } catch (error) {
-        res.status(500).json({ erro: "Erro ao processar mensagem no chat." });
-    }
-});
+        // EVENTO DE CADASTRO
+        document.getElementById('btn-cadastrar').addEventListener('click', async () => {
+            const nome = document.getElementById('nome').value.trim();
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            const cpf = document.getElementById('cpf').value.trim();
+            const genero = document.getElementById('genero').value;
+            const foto = document.getElementById('foto').value.trim() || 'https://unsplash.com';
 
-app.listen(PORT, () => {
-    console.log("Servidor do Namoro Online rodando na porta " + PORT);
-});
+            if (!nome || !dataNascimento || !cpf || !genero) {
+                alert("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
+            if (cpf.length !== 11) {
+                alert("O CPF informado deve conter exatamente 11 dígitos.");
+                return;
+            }
+
+            const hoje = new Date();
+            const nascimento = new Date(dataNascimento);
+            let idadeCalculada = hoje.getFullYear() - nascimento.getFullYear();
+            const mes = hoje.getMonth() - nascimento.getMonth();
+            if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+                idadeCalculada--;
+            }
+            if (idadeCalculada < 18) {
+                alert("Cadastro negado. O sistema é exclusivo para maiores de 18 anos.");
+                return;
+            }
+
+            try {
+                const res = await fetch(API_URL + 'api/cadastro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, dataNascimento, cpf, genero, foto })
+                });
+                const resultado = await res.json();
+                if (res.ok) {
+                    alert('Perfil verificado e cadastrado com sucesso!');
+                    usuarioAtual = resultado.usuario;
+                    document.getElementById('tela-cadastro').classList.add('hidden');
+                    document.getElementById('tela-chat').classList.remove('hidden');
+                    document.getElementById('user-avatar').src = usuarioAtual.foto;
+                    document.getElementById('user-boasvindas').innerText = 'Olá, ' + usuarioAtual.nome;
+                } else {
+                    alert('Erro no cadastro: ' + (resultado.erro || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                alert("Não foi possível conectar ao servidor.");
+            }
+        });
+
+        // EVENTO DE ENVIAR MENSAGEM NO CHAT
+        document.getElementById('enviar').addEventListener('click', async () => {
+            const msg = document.getElementById('msg').value;
+            if (!msg.trim()) return;
+            try {
+                const res = await fetch(API_URL + 'api/chat', {
+                    method: 'POST',
