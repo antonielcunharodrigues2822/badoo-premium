@@ -21,7 +21,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 let usuariosTestes = [];
 
 // Conexão direta com o MongoDB Atlas real para salvar dados na nuvem permanentemente
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/namoroonline";
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://antonielrodrigues2822_db_user:Antoniel28@cluster0.lkyun.mongodb.net/namoroonline?retryWrites=true&w=majority&appName=Cluster0";
+
 mongoose.connect(MONGO_URI)
     .then(() => console.log("Banco de dados MongoDB conectado com sucesso!"))
     .catch(err => {
